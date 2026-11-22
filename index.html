@@ -3,559 +3,450 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>สถานะโปรเจกต์ CI · CNC</title>
-<meta name="description" content="Dashboard ติดตามสถานะโปรเจกต์ Continuous Improvement สายการผลิต CNC (ข้อมูลสมมติ)">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Anuphan:wght@400;500;600;700&display=swap" rel="stylesheet">
+<title>CI Project Board</title>
+<meta name="description" content="ติดตามสถานะโปรเจกต์ Continuous Improvement ไลน์ผลิตชิ้นส่วน CNC (ข้อมูลสมมติ)">
 <style>
   :root {
-    --paper: #f3f5f6;
-    --sheet: #ffffff;
-    --ink: #14202e;
-    --ink-2: #4a5868;
-    --ink-3: #6b7886;
-    --rule: #cdd4da;
-    --rule-strong: #14202e;
-    --blue: #1f5fae;
-    --blue-wash: #e6eef8;
+    --bg: #eef1f4;
+    --card: #ffffff;
+    --text: #111a24;
+    --muted: #556270;
+    --faint: #6f7c89;
+    --line: #d9dfe5;
+    --track: #e6eaee;
+    --accent: #2457c5;
+    --accent-soft: rgba(36, 87, 197, .12);
 
-    --late: #b42318;
-    --late-wash: #fdecea;
-    --risk: #9a5b00;
-    --risk-mark: #b87700;
-    --risk-wash: #fff4dc;
-    --ok: #18794e;
-    --ok-wash: #e5f4ec;
-    --done: #4a5868;
-    --done-wash: #eceff2;
+    --red: #c0281c;     --red-bg: #fdeceb;
+    --amber: #9a5800;   --amber-bar: #d08a00; --amber-bg: #fff3d6;
+    --green: #1a7a4a;   --green-bg: #e3f4ea;
+    --grey: #5b6875;    --grey-bg: #eceff2;
 
-    --radius: 4px;
-    --font: "Anuphan", "Noto Sans Thai", "Leelawadee UI", "Thonburi", system-ui, sans-serif;
+    --font: "Noto Sans Thai", "Leelawadee UI", "Thonburi", "Sukhumvit Set", Tahoma, system-ui, sans-serif;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0e141a; --card: #17202a; --text: #e8edf2; --muted: #a3afbb; --faint: #8b97a3;
+      --line: #2a3643; --track: #26313d; --accent: #7aa5ff; --accent-soft: rgba(122, 165, 255, .16);
+      --red: #ff7a6e;   --red-bg: rgba(255, 122, 110, .14);
+      --amber: #f2b64a; --amber-bar: #f2b64a; --amber-bg: rgba(242, 182, 74, .14);
+      --green: #4fcf8a; --green-bg: rgba(79, 207, 138, .14);
+      --grey: #9aa6b2;  --grey-bg: rgba(154, 166, 178, .14);
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0e141a; --card: #17202a; --text: #e8edf2; --muted: #a3afbb; --faint: #8b97a3;
+    --line: #2a3643; --track: #26313d; --accent: #7aa5ff; --accent-soft: rgba(122, 165, 255, .16);
+    --red: #ff7a6e;   --red-bg: rgba(255, 122, 110, .14);
+    --amber: #f2b64a; --amber-bar: #f2b64a; --amber-bg: rgba(242, 182, 74, .14);
+    --green: #4fcf8a; --green-bg: rgba(79, 207, 138, .14);
+    --grey: #9aa6b2;  --grey-bg: rgba(154, 166, 178, .14);
+    color-scheme: dark;
   }
 
-  * { box-sizing: border-box; }
+  *, *::before, *::after { box-sizing: border-box; }
   html { -webkit-text-size-adjust: 100%; }
   body {
-    margin: 0;
-    background: var(--paper);
-    color: var(--ink);
-    font-family: var(--font);
-    font-size: 15px;
-    line-height: 1.5;
-    font-variant-numeric: tabular-nums;
+    margin: 0; background: var(--bg); color: var(--text);
+    font: 15px/1.55 var(--font); font-variant-numeric: tabular-nums;
   }
-  ::selection { background: var(--blue); color: #fff; }
-  :focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; border-radius: 2px; }
+  .wrap { max-width: 1200px; margin: 0 auto; padding: 20px 24px 36px; }
 
-  .page { max-width: 1240px; margin: 0 auto; padding: 24px 24px 40px; }
+  /* Header */
+  header { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px 20px; }
+  .eyebrow { margin: 0; font-size: .8rem; font-weight: 600; color: var(--muted); letter-spacing: .02em; }
+  h1 { margin: 2px 0 0; font-size: 1.45rem; line-height: 1.3; font-weight: 700; }
+  .stamp { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; font-size: .85rem; color: var(--muted); }
+  .stamp b { color: var(--text); }
+  .tag { padding: 2px 10px; border-radius: 999px; background: var(--grey-bg); color: var(--grey); font-weight: 600; font-size: .78rem; }
 
-  /* ---------- Header ---------- */
-  .head {
-    display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between;
-    gap: 8px 24px; padding-bottom: 14px; border-bottom: 2px solid var(--rule-strong);
+  /* Headline: the 5-second answer */
+  .headline {
+    margin-top: 16px; display: grid; grid-template-columns: auto 1fr auto; gap: 4px 14px; align-items: center;
+    padding: 14px 18px; border-radius: 10px; background: var(--card);
+    border: 1px solid var(--line); border-left: 6px solid var(--red);
   }
-  h1 { margin: 0; font-size: 1.5rem; line-height: 1.25; font-weight: 700; letter-spacing: -0.01em; text-wrap: balance; }
-  h1 small { display: block; font-size: .9rem; font-weight: 500; color: var(--ink-2); letter-spacing: 0; margin-top: 2px; }
-  .meta { display: flex; gap: 16px; font-size: .85rem; color: var(--ink-2); flex-wrap: wrap; }
-  .meta b { color: var(--ink); font-weight: 600; }
-  .synthetic {
-    display: inline-flex; align-items: center; gap: 6px;
-    padding: 1px 8px; border: 1px dashed var(--ink-3); border-radius: var(--radius); color: var(--ink-2);
-  }
+  .headline.calm { border-left-color: var(--green); }
+  .headline .big { font-size: 1.15rem; font-weight: 700; line-height: 1.35; }
+  .headline .sub { grid-column: 2; font-size: .88rem; color: var(--muted); }
+  .headline .ico { width: 28px; height: 28px; color: var(--red); grid-row: span 2; }
+  .headline.calm .ico { color: var(--green); }
+  .tally { grid-column: 3; grid-row: 1 / span 2; display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
 
-  /* ---------- Status strip (answer in 5 seconds) ---------- */
-  .verdict {
-    display: grid; grid-template-columns: minmax(0, 1.4fr) repeat(4, minmax(0, 1fr));
-    margin-top: 18px; background: var(--sheet); border: 1px solid var(--rule-strong); border-radius: var(--radius);
-    overflow: hidden;
-  }
-  .verdict-lead { padding: 14px 18px; border-right: 1px solid var(--rule); display: flex; flex-direction: column; justify-content: center; }
-  .verdict-lead p { margin: 0; font-size: 1.05rem; font-weight: 600; line-height: 1.4; text-wrap: balance; }
-  .verdict-lead span { font-size: .85rem; color: var(--ink-2); }
-  .seg {
-    appearance: none; border: 0; border-right: 1px solid var(--rule); background: var(--sheet);
-    font: inherit; color: inherit; text-align: left; cursor: pointer;
-    padding: 12px 16px; display: grid; grid-template-columns: auto 1fr; grid-template-rows: auto auto;
-    column-gap: 10px; align-items: center; transition: background-color .18s ease-out;
-  }
-  .seg:last-child { border-right: 0; }
-  .seg .ico { grid-row: 1 / 3; width: 22px; height: 22px; }
-  .seg .n { font-size: 1.75rem; font-weight: 700; line-height: 1.1; }
-  .seg .l { font-size: .85rem; color: var(--ink-2); font-weight: 500; }
-  .seg:hover { background: var(--paper); }
-  .seg[aria-pressed="true"] { box-shadow: inset 0 -3px 0 currentColor; }
-  .seg[data-s="late"]  { color: var(--late); }
-  .seg[data-s="risk"]  { color: var(--risk); }
-  .seg[data-s="ok"]    { color: var(--ok); }
-  .seg[data-s="done"]  { color: var(--done); }
-  .seg[data-s="late"][aria-pressed="true"] { background: var(--late-wash); }
-  .seg[data-s="risk"][aria-pressed="true"] { background: var(--risk-wash); }
-  .seg[data-s="ok"][aria-pressed="true"]   { background: var(--ok-wash); }
-  .seg[data-s="done"][aria-pressed="true"] { background: var(--done-wash); }
-  .seg[disabled] { cursor: default; opacity: .55; }
-
-  /* ---------- KPI title-block ---------- */
-  .kpis {
-    display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));
-    margin-top: 16px; background: var(--sheet); border: 1px solid var(--rule-strong); border-radius: var(--radius);
-  }
-  .kpi { padding: 12px 16px 14px; border-right: 1px solid var(--rule); min-width: 0; }
-  .kpi:last-child { border-right: 0; }
-  .kpi h2 { margin: 0; font-size: .8rem; font-weight: 600; color: var(--ink-2); line-height: 1.3; }
-  .kpi h2 abbr { text-decoration: none; }
-  .kpi .v { display: flex; align-items: baseline; gap: 6px; margin-top: 4px; }
-  .kpi .v strong { font-size: 2rem; font-weight: 700; line-height: 1.1; letter-spacing: -0.02em; }
-  .kpi .v .u { font-size: .95rem; color: var(--ink-2); font-weight: 500; }
-  .kpi .row { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 2px 12px; margin-top: 8px; font-size: .82rem; color: var(--ink-2); }
-  .kpi .row b { font-weight: 600; color: var(--ink); }
-  .delta { display: inline-flex; align-items: center; gap: 3px; font-weight: 600; }
-  .delta svg { width: 12px; height: 12px; }
-  .delta.good { color: var(--ok); }
-  .delta.bad  { color: var(--late); }
-  .kstat { display: flex; align-items: center; gap: 6px; margin-top: 6px; font-size: .85rem; font-weight: 600; }
-  .kstat svg { width: 15px; height: 15px; flex: none; }
-  .kstat.ok { color: var(--ok); }
-  .kstat.risk { color: var(--risk); }
-  .kstat.late { color: var(--late); }
-  .kpi .row { border-top: 1px solid var(--rule); padding-top: 8px; }
-
-  /* ---------- Main grid ---------- */
-  .main { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 16px; margin-top: 16px; align-items: start; }
-  .panel { background: var(--sheet); border: 1px solid var(--rule-strong); border-radius: var(--radius); min-width: 0; }
-  .panel-head {
-    display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap;
-    padding: 12px 16px; border-bottom: 1px solid var(--rule);
-  }
-  .panel-head h2 { margin: 0; font-size: 1rem; font-weight: 700; }
-  .panel-head p { margin: 0; font-size: .82rem; color: var(--ink-2); }
-  .clear {
-    appearance: none; border: 1px solid var(--rule); background: var(--sheet); color: var(--blue);
-    font: inherit; font-size: .82rem; font-weight: 600; padding: 2px 10px; border-radius: var(--radius); cursor: pointer;
-  }
-  .clear:hover { background: var(--blue-wash); border-color: var(--blue); }
-  .clear[hidden] { display: none; }
-
-  /* ---------- Table ---------- */
-  table { width: 100%; border-collapse: collapse; }
-  th {
-    text-align: left; font-size: .78rem; font-weight: 600; color: var(--ink-2);
-    padding: 8px 16px; border-bottom: 1px solid var(--rule); white-space: nowrap; background: var(--sheet);
-  }
-  td { padding: 12px 16px; border-bottom: 1px solid var(--rule); vertical-align: middle; }
-  tbody tr:last-child td { border-bottom: 0; }
-  tbody tr { transition: background-color .15s ease-out; }
-  tbody tr:hover { background: #f8f9fa; }
-  .c-name { width: 38%; }
-  .c-prog { width: 22%; }
-  .pname { font-weight: 600; line-height: 1.35; }
-  .pname small { display: block; font-weight: 400; color: var(--ink-3); font-size: .8rem; margin-top: 2px; }
-  .owner { white-space: nowrap; }
-  .owner small { display: block; color: var(--ink-3); font-size: .8rem; }
-
-  .pill {
+  .chip {
     display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;
-    padding: 3px 10px 3px 7px; border-radius: 999px; font-size: .82rem; font-weight: 600;
+    padding: 3px 10px 3px 8px; border-radius: 999px; font-size: .82rem; font-weight: 600; line-height: 1.4;
   }
-  .pill svg { width: 15px; height: 15px; flex: none; }
-  .pill.late { background: var(--late-wash); color: var(--late); }
-  .pill.risk { background: var(--risk-wash); color: var(--risk); }
-  .pill.ok   { background: var(--ok-wash); color: var(--ok); }
-  .pill.done { background: var(--done-wash); color: var(--done); }
+  .chip svg { width: 14px; height: 14px; flex: none; }
+  .s-late { color: var(--red);   background: var(--red-bg); }
+  .s-risk { color: var(--amber); background: var(--amber-bg); }
+  .s-ok   { color: var(--green); background: var(--green-bg); }
+  .s-done { color: var(--grey);  background: var(--grey-bg); }
 
-  .prog { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 4px 10px; }
-  .prog .pct { font-weight: 700; min-width: 3.2ch; text-align: right; }
-  .bar { position: relative; height: 8px; background: var(--paper); border-radius: 4px; }
-  .bar i { position: absolute; inset: 0 auto 0 0; border-radius: 4px; }
-  .bar.late i { background: var(--late); }
-  .bar.risk i { background: var(--risk-mark); }
-  .bar.ok i   { background: var(--ok); }
-  .bar.done i { background: var(--done); }
-  .bar b { position: absolute; top: -4px; width: 2px; height: 16px; background: var(--ink); transform: translateX(-1px); }
-  .prog .exp { grid-column: 1 / -1; font-size: .78rem; color: var(--ink-3); }
-  .prog .exp.behind { color: var(--late); font-weight: 600; }
+  /* KPI cards */
+  .kpis { margin-top: 14px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+  .kpi { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px 14px 18px; min-width: 0; position: relative; overflow: hidden; }
+  .kpi::before { content: ""; position: absolute; inset: 0 auto 0 0; width: 4px; background: var(--k); }
+  .kpi[data-s="late"] { --k: var(--red); --kt: var(--red); }
+  .kpi[data-s="risk"] { --k: var(--amber-bar); --kt: var(--amber); }
+  .kpi[data-s="ok"]   { --k: var(--green); --kt: var(--green); }
+  .kpi h2 { margin: 0; font-size: .82rem; font-weight: 600; color: var(--muted); }
+  .kpi .val { margin-top: 2px; font-size: 1.9rem; font-weight: 700; line-height: 1.2; letter-spacing: -.01em; }
+  .kpi .val small { font-size: .9rem; font-weight: 500; color: var(--muted); margin-left: 4px; letter-spacing: 0; }
+  .kpi .verdict { margin-top: 6px; display: flex; align-items: center; gap: 6px; font-size: .85rem; font-weight: 600; color: var(--kt); }
+  .kpi .verdict svg { width: 14px; height: 14px; flex: none; }
+  .kpi .meta { margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--line); display: flex; justify-content: space-between; flex-wrap: wrap; gap: 2px 10px; font-size: .8rem; color: var(--muted); }
+  .kpi .meta b { color: var(--text); font-weight: 600; }
+  .up-good { color: var(--green); font-weight: 600; }
+  .up-bad  { color: var(--red); font-weight: 600; }
 
+  /* Body grid */
+  .grid { margin-top: 14px; display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 12px; align-items: start; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; min-width: 0; }
+  .card-h { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 4px 12px; padding: 12px 16px; border-bottom: 1px solid var(--line); }
+  .card-h h2 { margin: 0; font-size: 1rem; font-weight: 700; }
+  .card-h span { font-size: .8rem; color: var(--muted); }
+
+  /* Project table */
+  table { width: 100%; border-collapse: collapse; }
+  thead th { text-align: left; font-size: .76rem; font-weight: 600; color: var(--muted); padding: 9px 14px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+  tbody td { padding: 12px 14px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+  tbody tr:last-child td { border-bottom: 0; }
+  .col-name { width: 34%; }
+  .col-prog { width: 25%; }
+  .pn { font-weight: 600; line-height: 1.4; }
+  .who { white-space: nowrap; }
+  .who small, .due small { display: block; font-size: .78rem; color: var(--faint); }
   .due { white-space: nowrap; }
-  .due small { display: block; font-size: .8rem; color: var(--ink-3); }
-  .due small.over { color: var(--late); font-weight: 600; }
-  .due small.soon { color: var(--risk); font-weight: 600; }
+  .due small.hot { color: var(--red); font-weight: 600; }
+  .due small.warm { color: var(--amber); font-weight: 600; }
 
-  .nw { white-space: nowrap; }
-  .empty { padding: 28px 16px; text-align: center; color: var(--ink-2); }
+  .pg { display: grid; grid-template-columns: 1fr 4ch; gap: 3px 10px; align-items: center; }
+  .pg .num { font-weight: 700; text-align: right; }
+  .track { position: relative; height: 8px; border-radius: 4px; background: var(--track); }
+  .fill { position: absolute; inset: 0 auto 0 0; border-radius: 4px; }
+  .track.s-late .fill { background: var(--red); }
+  .track.s-risk .fill { background: var(--amber-bar); }
+  .track.s-ok   .fill { background: var(--green); }
+  .track.s-done .fill { background: var(--grey); }
+  .plan { position: absolute; top: -4px; width: 2px; height: 16px; margin-left: -1px; background: var(--text); border-radius: 1px; }
+  .pg .note { grid-column: 1 / -1; font-size: .76rem; color: var(--faint); }
+  .pg .note.bad { color: var(--red); font-weight: 600; }
+  .pg .note.warn { color: var(--amber); font-weight: 600; }
 
-  /* ---------- Trend ---------- */
-  .trend-body { padding: 12px 16px 16px; }
-  .trend-now { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
-  .trend-now strong { font-size: 1.6rem; font-weight: 700; letter-spacing: -0.02em; }
-  .trend-now span { font-size: .85rem; color: var(--ink-2); }
-  .trend svg { display: block; width: 100%; height: 170px; margin-top: 8px; overflow: visible; }
-  .trend .axis text { font: 500 11px var(--font); fill: var(--ink-3); }
-  .trend .grid line { stroke: var(--rule); stroke-width: 1; }
-  .trend .target { stroke: var(--ok); stroke-width: 1.5; stroke-dasharray: 5 4; }
-  .trend .target-l { font: 600 11px var(--font); fill: var(--ok); }
-  .trend .line { fill: none; stroke: var(--blue); stroke-width: 2.25; stroke-linejoin: round; stroke-linecap: round; }
-  .trend .area { fill: var(--blue-wash); }
-  .trend .pt { fill: var(--sheet); stroke: var(--blue); stroke-width: 2; }
-  .trend .pt.last { fill: var(--blue); }
-  .trend .val { font: 700 12px var(--font); fill: var(--blue); }
-  .trend .hit { fill: transparent; cursor: crosshair; }
-  .trend-note { margin: 10px 0 0; font-size: .82rem; color: var(--ink-2); }
-  .legend { display: flex; gap: 14px; margin-top: 8px; font-size: .78rem; color: var(--ink-2); flex-wrap: wrap; }
-  .legend i { display: inline-block; width: 16px; height: 0; vertical-align: middle; margin-right: 5px; border-top: 2.25px solid var(--blue); }
-  .legend i.t { border-top: 1.5px dashed var(--ok); }
+  /* Trend */
+  .trend { padding: 12px 16px 16px; }
+  .trend .now { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+  .trend .now strong { font-size: 1.5rem; font-weight: 700; }
+  .trend .now span { font-size: .82rem; font-weight: 600; }
+  #spark { display: block; width: 100%; height: 150px; margin-top: 8px; overflow: visible; }
+  #spark text { font: 500 10.5px var(--font); fill: var(--faint); }
+  #spark .gl { stroke: var(--line); }
+  #spark .planl { fill: none; stroke: var(--muted); stroke-width: 1.5; stroke-dasharray: 4 4; }
+  #spark .act { fill: none; stroke: var(--accent); stroke-width: 2.4; stroke-linejoin: round; stroke-linecap: round; }
+  #spark .area { fill: var(--accent-soft); }
+  #spark .dot { fill: var(--accent); }
+  #spark .lbl { font-weight: 700; fill: var(--accent); font-size: 11.5px; }
+  .key { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 6px; font-size: .76rem; color: var(--muted); }
+  .key i { display: inline-block; width: 16px; vertical-align: middle; margin-right: 5px; border-top: 2.4px solid var(--accent); }
+  .key i.d { border-top: 1.5px dashed var(--muted); }
+  .trend p { margin: 8px 0 0; font-size: .82rem; color: var(--muted); }
 
-  .foot { margin-top: 18px; font-size: .78rem; color: var(--ink-2); display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  footer { margin-top: 16px; font-size: .76rem; color: var(--faint); line-height: 1.6; }
+  footer p { margin: 0; }
 
-  /* ---------- Responsive ---------- */
-  @media (max-width: 1080px) {
-    .main { grid-template-columns: minmax(0, 1fr); }
-  }
-  @media (min-width: 721px) and (max-width: 1080px) {
-    .trend-body { display: grid; grid-template-columns: 220px minmax(0, 1fr); grid-template-areas: "now chart" "note chart" "legend chart"; column-gap: 28px; align-content: start; }
-    .trend-now { grid-area: now; flex-direction: column; gap: 2px; }
-    .trend svg { grid-area: chart; margin-top: 0; }
-    .trend-note { grid-area: note; }
-    .legend { grid-area: legend; }
-  }
-  @media (max-width: 860px) {
-    .verdict { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-    .verdict-lead { grid-column: 1 / -1; border-right: 0; border-bottom: 1px solid var(--rule); }
+  /* Responsive */
+  @media (max-width: 1020px) {
+    .grid { grid-template-columns: minmax(0, 1fr); }
     .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    .kpi:nth-child(2) { border-right: 0; }
-    .kpi:nth-child(-n+2) { border-bottom: 1px solid var(--rule); }
   }
   @media (max-width: 720px) {
-    .page { padding: 16px 16px 32px; }
-    h1 { font-size: 1.25rem; }
-    .seg { padding: 10px 10px; grid-template-columns: 1fr; row-gap: 2px; }
-    .seg .ico { grid-row: auto; width: 18px; height: 18px; }
-    .seg .n { font-size: 1.5rem; }
-    .kpi { padding: 10px 12px 12px; }
-    .kpi .v strong { font-size: 1.6rem; }
+    .wrap { padding: 14px 16px 28px; }
+    h1 { font-size: 1.2rem; }
+    .headline { grid-template-columns: auto 1fr; padding: 12px 14px; }
+    .headline .ico { grid-row: auto; width: 24px; height: 24px; }
+    .headline .sub { grid-column: 1 / -1; }
+    .tally { grid-row: auto; grid-column: 1 / -1; justify-content: flex-start; }
+    .kpis { gap: 8px; }
+    .kpi { padding: 12px 12px 12px 16px; }
+    .kpi .val { font-size: 1.5rem; }
 
-    /* Table → stacked rows */
     thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
     table, tbody, tr, td { display: block; width: 100%; }
     tbody tr {
-      display: grid; grid-template-columns: 1fr auto; gap: 8px 12px;
-      padding: 14px 16px; border-bottom: 1px solid var(--rule);
+      display: grid; grid-template-columns: 1fr auto; gap: 8px 12px; padding: 14px 16px; border-bottom: 1px solid var(--line);
     }
     tbody tr:last-child { border-bottom: 0; }
-    td, td.c-name, td.c-prog { padding: 0; border: 0; width: auto; }
-    td.c-name { grid-column: 1 / -1; }
-    td.c-owner { grid-column: 1; grid-row: 3; }
-    td.c-status { grid-column: 2; grid-row: 3; justify-self: end; }
+    tbody td { padding: 0; border: 0; width: auto !important; }
+    td.c-name { grid-column: 1; grid-row: 1; }
+    td.c-stat { grid-column: 2; grid-row: 1; justify-self: end; align-self: start; }
     td.c-prog { grid-column: 1 / -1; grid-row: 2; }
-    td.c-due { grid-column: 1 / -1; grid-row: 4; display: flex; gap: 8px; align-items: baseline; }
-    td.c-due::before { content: "ครบกำหนด"; font-size: .8rem; color: var(--ink-3); }
-    .due { display: flex; flex-wrap: wrap; gap: 0 8px; align-items: baseline; }
-    .due small { display: inline; }
-    .owner small { display: inline; }
-    .owner small::before { content: " · "; }
+    td.c-who  { grid-column: 1; grid-row: 3; }
+    td.c-due  { grid-column: 2; grid-row: 3; text-align: right; }
   }
-  @media (max-width: 380px) {
-    .verdict { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    .seg:nth-child(3) { border-right: 0; }
-    .seg:nth-child(-n+3) { border-bottom: 1px solid var(--rule); }
+  @media (max-width: 360px) {
     .kpis { grid-template-columns: minmax(0, 1fr); }
-    .kpi { border-right: 0; border-bottom: 1px solid var(--rule); }
-    .kpi:last-child { border-bottom: 0; }
-  }
-  @media (prefers-reduced-motion: reduce) {
-    * { transition: none !important; }
   }
 </style>
 </head>
 <body>
-<div class="page">
+<div class="wrap">
 
-  <header class="head">
-    <h1>สถานะโปรเจกต์ Continuous Improvement
-      <small>สายการผลิตชิ้นส่วน CNC · อาคาร 2</small>
-    </h1>
-    <div class="meta">
-      <span>ข้อมูล ณ <b id="asof"></b></span>
-      <span class="synthetic">ข้อมูลสมมติ</span>
+  <header>
+    <div>
+      <p class="eyebrow">CONTINUOUS IMPROVEMENT · ไลน์ผลิตชิ้นส่วน CNC</p>
+      <h1>กระดานติดตามโปรเจกต์ CI</h1>
+    </div>
+    <div class="stamp">
+      <span>อัปเดต <b id="asof"></b></span>
+      <span class="tag">ข้อมูลสมมติ</span>
     </div>
   </header>
 
-  <section class="verdict" aria-label="สรุปสถานะโปรเจกต์">
-    <div class="verdict-lead">
-      <p id="verdict-text"></p>
-      <span>กดตัวเลขเพื่อกรองตาราง</span>
-    </div>
-    <!-- segments rendered by script -->
-  </section>
+  <section class="headline" id="headline" aria-label="สรุปสถานะ"></section>
 
-  <section class="kpis" aria-label="ตัวชี้วัดหลัก" id="kpis"></section>
+  <section class="kpis" id="kpis" aria-label="ตัวชี้วัดหลัก"></section>
 
-  <div class="main">
-    <section class="panel" aria-labelledby="t-projects">
-      <div class="panel-head">
-        <h2 id="t-projects">โปรเจกต์ทั้งหมด</h2>
-        <p><span id="count-label"></span> <button class="clear" id="clear" type="button" hidden>ดูทั้งหมด</button></p>
+  <div class="grid">
+    <section class="card" aria-labelledby="h-proj">
+      <div class="card-h">
+        <h2 id="h-proj">โปรเจกต์ (6)</h2>
+        <span>เรียงจากเรื่องที่ต้องจัดการก่อน · ขีดดำ = จุดที่ควรถึงตามแผน</span>
       </div>
       <table>
         <thead>
           <tr>
-            <th scope="col" class="c-name">โปรเจกต์</th>
+            <th scope="col" class="col-name">ชื่อโปรเจกต์</th>
             <th scope="col">เจ้าของ</th>
             <th scope="col">สถานะ</th>
-            <th scope="col" class="c-prog">ความคืบหน้า</th>
+            <th scope="col" class="col-prog">ความคืบหน้า</th>
             <th scope="col">ครบกำหนด</th>
           </tr>
         </thead>
-        <tbody id="rows"></tbody>
+        <tbody id="tbody"></tbody>
       </table>
     </section>
 
-    <section class="panel trend" aria-labelledby="t-trend">
-      <div class="panel-head">
-        <h2 id="t-trend">แนวโน้ม OEE รายสัปดาห์</h2>
-        <p>12 สัปดาห์ล่าสุด</p>
+    <section class="card" aria-labelledby="h-trend">
+      <div class="card-h">
+        <h2 id="h-trend">ยอดประหยัดสะสม</h2>
+        <span>ม.ค.–พ.ย. 2569</span>
       </div>
-      <div class="trend-body">
-        <div class="trend-now"><strong id="oee-now"></strong><span id="oee-sub"></span></div>
-        <svg id="chart" viewBox="0 0 300 170" role="img" aria-labelledby="chart-desc"><desc id="chart-desc"></desc></svg>
-        <div class="legend"><span><i></i>OEE จริง</span><span><i class="t"></i>เป้าหมาย 85%</span></div>
-        <p class="trend-note" id="trend-note"></p>
+      <div class="trend">
+        <div class="now"><strong id="t-now"></strong><span id="t-sub"></span></div>
+        <svg id="spark" role="img" aria-labelledby="spark-d"><desc id="spark-d"></desc></svg>
+        <div class="key"><span><i></i>ทำได้จริง</span><span><i class="d"></i>แผน (เป้าทั้งปี 3.6 ล้าน)</span></div>
+        <p id="t-note"></p>
       </div>
     </section>
   </div>
 
-  <footer class="foot">
-    <span>“ควรถึง” = ความคืบหน้าตามแผน ณ วันที่ข้อมูล คิดเชิงเส้นจากวันเริ่มถึงวันครบกำหนด</span>
-    <span>ชื่อบุคคลและตัวเลขทั้งหมดเป็นข้อมูลสมมติ</span>
+  <footer>
+    <p><b>เกณฑ์สถานะ (คำนวณอัตโนมัติ):</b> เสร็จแล้ว = 100% · ล่าช้า = เลยกำหนดแล้ว หรือตามหลังแผนเกิน 20 จุด · เสี่ยง = ตามหลังแผน 9–20 จุด · ตามแผน = ตามหลังไม่เกิน 8 จุด</p>
+    <p>“แผน” คิดเชิงเส้นจากวันเริ่มถึงวันครบกำหนด · ชื่อคน โปรเจกต์ และตัวเลขทั้งหมดเป็นข้อมูลสมมติ</p>
   </footer>
 </div>
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
-  <symbol id="i-late" viewBox="0 0 16 16"><path d="M5.1 1.5h5.8l4.1 4.1v5.8l-4.1 4.1H5.1L1 11.4V5.6z" fill="currentColor"/><path d="M8 4.5v4.2M8 11v.3" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/></symbol>
-  <symbol id="i-risk" viewBox="0 0 16 16"><path d="M8 1.6 15.2 14H.8z" fill="currentColor" stroke="currentColor" stroke-width="1" stroke-linejoin="round"/><path d="M8 6v3.6M8 11.6v.3" stroke="#fff" stroke-width="1.7" stroke-linecap="round"/></symbol>
-  <symbol id="i-ok" viewBox="0 0 16 16"><circle cx="8" cy="8" r="7" fill="currentColor"/><path d="M5.6 8h4.8M8.4 5.6 10.8 8l-2.4 2.4" fill="none" stroke="#fff" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></symbol>
-  <symbol id="i-done" viewBox="0 0 16 16"><circle cx="8" cy="8" r="7" fill="currentColor"/><path d="m4.8 8.2 2.2 2.2 4.2-4.6" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
-  <symbol id="i-up" viewBox="0 0 12 12"><path d="M6 10V2M2.5 5.5 6 2l3.5 3.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
-  <symbol id="i-down" viewBox="0 0 12 12"><path d="M6 2v8M2.5 6.5 6 10l3.5-3.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="ic-late" viewBox="0 0 16 16"><circle cx="8" cy="8" r="7.2" fill="currentColor"/><path d="M8 4.4v4.4M8 11.2v.2" stroke="#fff" stroke-width="1.9" stroke-linecap="round"/></symbol>
+  <symbol id="ic-risk" viewBox="0 0 16 16"><path d="M8 1.4 15.3 14.3H.7z" fill="currentColor" stroke="currentColor" stroke-linejoin="round"/><path d="M8 5.9v3.7M8 11.9v.2" stroke="#fff" stroke-width="1.7" stroke-linecap="round"/></symbol>
+  <symbol id="ic-ok" viewBox="0 0 16 16"><circle cx="8" cy="8" r="7.2" fill="currentColor"/><path d="m4.6 8.3 2.3 2.3 4.5-4.9" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="ic-done" viewBox="0 0 16 16"><rect x=".8" y=".8" width="14.4" height="14.4" rx="3.5" fill="currentColor"/><path d="m4.6 8.3 2.3 2.3 4.5-4.9" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
 </svg>
 
 <script>
 (function () {
   "use strict";
 
-  // ---- Synthetic data. Fixed "as of" date so the page never drifts from its data. ----
+  // ===== Synthetic data =====
   var ASOF = "2026-11-22";
 
-  var STATUS = {
-    late: { label: "ล่าช้า",   icon: "i-late", rank: 0 },
-    risk: { label: "เสี่ยง",    icon: "i-risk", rank: 1 },
-    ok:   { label: "ตามแผน",  icon: "i-ok",   rank: 2 },
-    done: { label: "เสร็จแล้ว", icon: "i-done", rank: 3 }
-  };
-
-  var projects = [
-    { name: "ลดเวลา Setup เครื่องกลึง CNC ด้วย SMED", note: "เป้า: 48 → 25 นาที/ครั้ง",
-      owner: "ธนพล ศรีวงศ์", role: "วิศวกรกระบวนการ", status: "ok", pct: 81, start: "2026-08-01", due: "2026-12-15" },
-    { name: "ลด Scrap จาก Burr ในงานกัด Housing", note: "เป้า: Scrap 3.1% → 1.5%",
-      owner: "กมลชนก ใจดี", role: "วิศวกรคุณภาพ", status: "risk", pct: 74, start: "2026-09-01", due: "2026-11-30" },
-    { name: "Predictive Maintenance แกน Spindle", note: "ติดตั้ง Vibration sensor 8 เครื่อง",
-      owner: "วรวุฒิ แสงทอง", role: "หัวหน้าซ่อมบำรุง", status: "late", pct: 30, start: "2026-07-15", due: "2026-11-10" },
-    { name: "5S + Visual Management ไลน์ Machining Center", note: "Audit ผ่าน 92 คะแนน",
-      owner: "สุภาวดี มีสุข", role: "หัวหน้าไลน์", status: "done", pct: 100, start: "2026-06-01", due: "2026-10-31" },
-    { name: "Tool Life Management ลดการเปลี่ยนมีดก่อนกำหนด", note: "เป้า: ลดค่ามีด 15%",
-      owner: "ณัฐวุฒิ พรหมมา", role: "วิศวกร CNC", status: "ok", pct: 60, start: "2026-09-15", due: "2027-01-20" },
-    { name: "Poka-yoke กันวางชิ้นงานผิดด้านบน Fixture", note: "เป้า: ข้อบกพร่องจากการวางชิ้นงาน = 0",
-      owner: "ปิยะพงษ์ ทองดี", role: "วิศวกรออกแบบ Jig", status: "risk", pct: 71, start: "2026-09-20", due: "2026-12-05" }
+  var PROJECTS = [
+    { name: "ลด Cycle time งานกัด Bracket ด้วย Toolpath ใหม่", owner: "อรุณี ทองมา", role: "วิศวกร CAM",
+      start: "2026-08-03", due: "2026-12-18", pct: 78 },
+    { name: "ระบบ Andon แจ้งเครื่องหยุด ไลน์ CNC 3", owner: "ชัยวัฒน์ บุญเรือง", role: "วิศวกรอัตโนมัติ",
+      start: "2026-07-01", due: "2026-11-14", pct: 85 },
+    { name: "ลด Rework จากค่าผิว (Ra) งาน Shaft", owner: "พิมพ์ชนก แก้วใส", role: "วิศวกรคุณภาพ",
+      start: "2026-09-07", due: "2026-12-11", pct: 68 },
+    { name: "Quick Changeover ชุด Jig เครื่อง VMC", owner: "สมเกียรติ ดวงดี", role: "หัวหน้าแผนกผลิต",
+      start: "2026-09-21", due: "2027-01-29", pct: 50 },
+    { name: "ยืดอายุน้ำมันหล่อเย็นด้วยระบบกรองกลาง", owner: "นภัสสร ศรีสุข", role: "วิศวกรซ่อมบำรุง",
+      start: "2026-06-15", due: "2026-10-30", pct: 100 },
+    { name: "Digital Check Sheet แทนกระดาษ งาน QC", owner: "ภูมิ วงศ์ใหญ่", role: "วิศวกรระบบ",
+      start: "2026-10-01", due: "2026-12-25", pct: 45 }
   ];
 
-  // lowerIsBetter flips both the delta colour and the target comparison
-  var kpis = [
-    { label: "OEE เฉลี่ยเดือนนี้", abbrTitle: "Overall Equipment Effectiveness", value: 78.4, unit: "%", dec: 1,
-      prev: 76.1, target: 85, lowerIsBetter: false, fmtTarget: "85%" },
-    { label: "อัตรา Scrap", value: 2.6, unit: "%", dec: 1,
-      prev: 3.1, target: 1.5, lowerIsBetter: true, fmtTarget: "≤ 1.5%" },
-    { label: "เวลา Setup เฉลี่ย", value: 34, unit: "นาที", dec: 0,
-      prev: 41, target: 25, lowerIsBetter: true, fmtTarget: "≤ 25 นาที" },
-    { label: "ยอดประหยัดสะสม ปี 2569", value: 1.84, unit: "ล้านบาท", dec: 2,
-      prev: 1.52, target: 2.5, lowerIsBetter: false, fmtTarget: "2.50 ล้าน/ปี", yearGoal: true }
+  // dir: +1 = higher is better, -1 = lower is better. ytd: judged against pro-rata of the annual target.
+  var KPIS = [
+    { label: "OEE เฉลี่ยเดือนนี้", val: 81.2, prev: 79.0, target: 85, unit: "%", dec: 1, dir: 1, tLabel: "≥ 85%" },
+    { label: "อัตรา Scrap", val: 1.9, prev: 2.4, target: 1.5, unit: "%", dec: 1, dir: -1, tLabel: "≤ 1.5%" },
+    { label: "Downtime ที่ไม่ได้วางแผน", val: 43, prev: 58, target: 40, unit: "ชม./เดือน", dec: 0, dir: -1, tLabel: "≤ 40 ชม." },
+    { label: "ยอดประหยัดสะสม YTD", val: 3.30, prev: 2.95, target: 3.6, unit: "ล้านบาท", dec: 2, dir: 1, tLabel: "3.6 ล้าน/ปี", ytd: true }
   ];
 
-  var oee = [
-    { w: 36, v: 74.2 }, { w: 37, v: 73.5 }, { w: 38, v: 75.8 }, { w: 39, v: 74.9 },
-    { w: 40, v: 76.3 }, { w: 41, v: 75.1 }, { w: 42, v: 77.0 }, { w: 43, v: 76.4 },
-    { w: 44, v: 77.9 }, { w: 45, v: 78.6 }, { w: 46, v: 77.8 }, { w: 47, v: 79.3 }
-  ];
-  var OEE_TARGET = 85;
+  // Cumulative savings (million THB) at each month end; November is month-to-date.
+  var SAVINGS = [0.18, 0.42, 0.71, 0.98, 1.24, 1.55, 1.86, 2.20, 2.58, 2.95, 3.30];
+  var ANNUAL = 3.6;
 
-  // ---- Helpers ----
-  var TH_MONTHS = ["ม.ค.","ก.พ.","มี.ค.","เม.ย.","พ.ค.","มิ.ย.","ก.ค.","ส.ค.","ก.ย.","ต.ค.","พ.ย.","ธ.ค."];
-  var DAY = 86400000;
-  function d(s) { var p = s.split("-"); return Date.UTC(+p[0], +p[1] - 1, +p[2]); }
-  function thDate(s) { var x = new Date(d(s)); return x.getUTCDate() + " " + TH_MONTHS[x.getUTCMonth()] + " " + (x.getUTCFullYear() + 543); }
-  function fmt(n, dec) { return n.toLocaleString("th-TH", { minimumFractionDigits: dec, maximumFractionDigits: dec }); }
+  // ===== Helpers =====
+  var MON = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."];
+  var DAY = 864e5;
+  function t(s) { var p = s.split("-"); return Date.UTC(+p[0], p[1] - 1, +p[2]); }
+  function thDate(s) { var d = new Date(t(s)); return d.getUTCDate() + " " + MON[d.getUTCMonth()] + " " + (d.getUTCFullYear() + 543); }
+  function nf(n, dec) { return n.toLocaleString("th-TH", { minimumFractionDigits: dec, maximumFractionDigits: dec }); }
   function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
-  function icon(id, cls) { return '<svg class="' + (cls || "") + '" aria-hidden="true"><use href="#' + id + '"/></svg>'; }
+  function ic(s) { return '<svg aria-hidden="true"><use href="#ic-' + s + '"/></svg>'; }
 
-  var now = d(ASOF);
-  projects.forEach(function (p) {
-    var span = d(p.due) - d(p.start);
-    p.expected = Math.max(0, Math.min(100, Math.round((now - d(p.start)) / span * 100)));
-    p.daysLeft = Math.round((d(p.due) - now) / DAY);
+  var NOW = t(ASOF);
+  var YEAR_END = Date.UTC(2027, 0, 1);
+  var LABEL = { late: "ล่าช้า", risk: "เสี่ยง", ok: "ตามแผน", done: "เสร็จแล้ว" };
+  var RANK = { late: 0, risk: 1, ok: 2, done: 3 };
+
+  // ===== Status is derived from the data, never hand-set =====
+  PROJECTS.forEach(function (p) {
+    var span = t(p.due) - t(p.start);
+    p.plan = Math.max(0, Math.min(100, Math.round((NOW - t(p.start)) / span * 100)));
+    p.left = Math.round((t(p.due) - NOW) / DAY);
+    p.gap = p.plan - p.pct;
+    p.s = p.pct >= 100 ? "done"
+        : (p.left < 0 || p.gap > 20) ? "late"
+        : p.gap > 8 ? "risk"
+        : "ok";
   });
-  projects.sort(function (a, b) {
-    return STATUS[a.status].rank - STATUS[b.status].rank || a.daysLeft - b.daysLeft;
-  });
+  PROJECTS.sort(function (a, b) { return RANK[a.s] - RANK[b.s] || a.left - b.left; });
 
   document.getElementById("asof").textContent = thDate(ASOF);
 
-  // ---- Verdict strip ----
-  var counts = { late: 0, risk: 0, ok: 0, done: 0 };
-  projects.forEach(function (p) { counts[p.status]++; });
-  var attention = counts.late + counts.risk;
-  document.getElementById("verdict-text").textContent = attention
-    ? attention + " จาก " + projects.length + " โปรเจกต์ต้องการความช่วยเหลือ"
-    : "ทุกโปรเจกต์เดินตามแผน";
+  // ===== Headline =====
+  var n = { late: 0, risk: 0, ok: 0, done: 0 };
+  PROJECTS.forEach(function (p) { n[p.s]++; });
+  var worst = PROJECTS[0];
+  var hl = document.getElementById("headline");
+  var attention = n.late + n.risk;
+  var big, sub;
+  if (attention === 0) {
+    hl.classList.add("calm");
+    big = "ทุกโปรเจกต์เดินตามแผน";
+    sub = "ไม่มีเรื่องที่ต้องตัดสินใจวันนี้";
+  } else {
+    big = attention + " จาก " + PROJECTS.length + " โปรเจกต์ต้องการการตัดสินใจ";
+    sub = "เร่งด่วนที่สุด: <b>" + esc(worst.name) + "</b> (" + esc(worst.owner) + ") · " +
+      (worst.left < 0 ? "เลยกำหนด " + (-worst.left) + " วัน ยังค้าง " + (100 - worst.pct) + "%"
+                      : "ตามหลังแผน " + worst.gap + " จุด เหลือ " + worst.left + " วัน");
+  }
+  hl.innerHTML =
+    '<svg class="ico" aria-hidden="true"><use href="#ic-' + (attention ? "late" : "ok") + '"/></svg>' +
+    '<div class="big">' + big + "</div>" +
+    '<div class="tally">' + ["late", "risk", "ok", "done"].map(function (k) {
+      return '<span class="chip s-' + k + '">' + ic(k) + LABEL[k] + " " + n[k] + "</span>";
+    }).join("") + "</div>" +
+    '<div class="sub">' + sub + "</div>";
 
-  var verdict = document.querySelector(".verdict");
-  var filter = null;
-  Object.keys(STATUS).forEach(function (k) {
-    var b = document.createElement("button");
-    b.type = "button";
-    b.className = "seg";
-    b.dataset.s = k;
-    b.setAttribute("aria-pressed", "false");
-    b.setAttribute("aria-label", STATUS[k].label + " " + counts[k] + " โปรเจกต์ (กดเพื่อกรอง)");
-    if (!counts[k]) b.disabled = true;
-    b.innerHTML = icon(STATUS[k].icon, "ico") + '<span class="n">' + counts[k] + '</span><span class="l">' + STATUS[k].label + "</span>";
-    b.addEventListener("click", function () { setFilter(filter === k ? null : k); });
-    verdict.appendChild(b);
-  });
-
-  // ---- KPIs ----
-  var yearFrac = (now - Date.UTC(2026, 0, 1)) / (Date.UTC(2027, 0, 1) - Date.UTC(2026, 0, 1));
-  var kHtml = kpis.map(function (k) {
-    var diff = k.value - k.prev;
-    var improved = k.lowerIsBetter ? diff < 0 : diff > 0;
-    // Year goals are judged against pro-rata pace, not the full-year number
-    var goal = k.yearGoal ? k.target * yearFrac : k.target;
-    var meets = k.lowerIsBetter ? k.value <= goal : k.value >= goal;
-    var gap = Math.abs(goal - k.value);
-    var cls = meets ? "ok" : (gap / goal > 0.25 ? "late" : "risk");
-    var statusTxt = meets ? "ถึงเป้าแล้ว"
-      : k.yearGoal ? "ช้ากว่าแผน " + fmt(gap, k.dec) + " ล้าน"
-      : "ห่างเป้า " + fmt(gap, k.dec) + " " + (k.unit === "%" ? "จุด" : k.unit);
-    var lbl = k.abbrTitle ? k.label.replace("OEE", '<abbr title="' + k.abbrTitle + '">OEE</abbr>') : esc(k.label);
-    var deltaTxt = (diff > 0 ? "+" : "−") + fmt(Math.abs(diff), k.dec);
-    return '<div class="kpi">' +
-      "<h2>" + lbl + "</h2>" +
-      '<div class="v"><strong>' + fmt(k.value, k.dec) + '</strong><span class="u">' + k.unit + "</span></div>" +
-      '<div class="kstat ' + cls + '">' + icon({ ok: "i-done", risk: "i-risk", late: "i-late" }[cls]) + statusTxt + "</div>" +
-      '<div class="row"><span>เป้า <b>' + k.fmtTarget + "</b></span>" +
-      '<span class="delta ' + (improved ? "good" : "bad") + '">' + icon(diff > 0 ? "i-up" : "i-down") + deltaTxt +
-      ' <span style="font-weight:400;color:var(--ink-2)">vs เดือนก่อน</span></span></div>' +
-      "</div>";
+  // ===== KPIs =====
+  var yearPos = (NOW - Date.UTC(2026, 0, 1)) / (YEAR_END - Date.UTC(2026, 0, 1));
+  document.getElementById("kpis").innerHTML = KPIS.map(function (k) {
+    var goal = k.ytd ? k.target * yearPos : k.target;
+    var short = k.dir > 0 ? (goal - k.val) / goal : (k.val - goal) / goal; // > 0 means missing target
+    var s = short <= 0 ? "ok" : short <= 0.10 ? "risk" : "late";
+    var gapAbs = Math.abs(goal - k.val);
+    var unitGap = k.unit === "%" ? "จุด" : k.unit.replace("/เดือน", "");
+    var verdict = s === "ok"
+      ? (k.ytd ? "นำแผน " + nf(gapAbs, k.dec) + " ล้าน" : "ถึงเป้าแล้ว")
+      : (k.ytd ? "ตามหลังแผน " + nf(gapAbs, k.dec) + " ล้าน" : "ห่างเป้า " + nf(gapAbs, k.dec) + " " + unitGap);
+    var d = k.val - k.prev;
+    var better = k.dir > 0 ? d > 0 : d < 0;
+    var arrow = d > 0 ? "▲" : d < 0 ? "▼" : "■";
+    return '<article class="kpi" data-s="' + s + '">' +
+      "<h2>" + esc(k.label) + "</h2>" +
+      '<div class="val">' + nf(k.val, k.dec) + "<small>" + k.unit + "</small></div>" +
+      '<div class="verdict">' + ic(s) + verdict + "</div>" +
+      '<div class="meta"><span>เป้า <b>' + k.tLabel + "</b></span>" +
+      '<span><span class="' + (better ? "up-good" : "up-bad") + '">' + arrow + " " + nf(Math.abs(d), k.dec) + "</span> จากเดือนก่อน</span></div>" +
+      "</article>";
   }).join("");
-  document.getElementById("kpis").innerHTML = kHtml;
 
-  // ---- Table ----
-  var tbody = document.getElementById("rows");
-  function dueSub(p) {
-    if (p.status === "done") return '<small>ปิดงานแล้ว</small>';
-    if (p.daysLeft < 0) return '<small class="over">เกินกำหนด ' + (-p.daysLeft) + " วัน</small>";
-    if (p.daysLeft <= 14) return '<small class="soon">อีก ' + p.daysLeft + " วัน</small>";
-    return "<small>อีก " + p.daysLeft + " วัน</small>";
+  // ===== Table =====
+  function note(p) {
+    if (p.s === "done") return '<span class="note">ส่งมอบครบแล้ว</span>';
+    if (p.left < 0) return '<span class="note bad">เลยกำหนด · ยังค้าง ' + (100 - p.pct) + "%</span>";
+    if (p.gap > 20) return '<span class="note bad">แผน ' + p.plan + "% · ตามหลัง " + p.gap + " จุด</span>";
+    if (p.gap > 8)  return '<span class="note warn">แผน ' + p.plan + "% · ตามหลัง " + p.gap + " จุด</span>";
+    return '<span class="note">แผน ' + p.plan + "%" + (p.gap < 0 ? " · นำ " + (-p.gap) + " จุด" : "") + "</span>";
   }
-  function expLine(p) {
-    if (p.status === "done") return '<span class="exp">ส่งมอบครบ</span>';
-    var gap = p.expected - p.pct;
-    if (p.daysLeft < 0) return '<span class="exp behind"><span class="nw">เลยกำหนดแล้ว</span> · <span class="nw">ค้างอีก ' + (100 - p.pct) + "%</span></span>";
-    if (gap > 5) return '<span class="exp behind"><span class="nw">ควรถึง ' + p.expected + '%</span> · <span class="nw">ตามหลัง ' + gap + " จุด</span></span>";
-    return '<span class="exp">ควรถึง ' + p.expected + "%" + (gap < -2 ? " · นำแผน " + (-gap) + " จุด" : "") + "</span>";
+  function dueNote(p) {
+    if (p.s === "done") return "<small>ปิดงานแล้ว</small>";
+    if (p.left < 0) return '<small class="hot">เกินมา ' + (-p.left) + " วัน</small>";
+    if (p.left <= 21) return '<small class="warm">เหลือ ' + p.left + " วัน</small>";
+    return "<small>เหลือ " + p.left + " วัน</small>";
   }
-  function render() {
-    var list = projects.filter(function (p) { return !filter || p.status === filter; });
-    if (!list.length) {
-      tbody.innerHTML = '<tr><td class="empty" colspan="5">ไม่มีโปรเจกต์ในสถานะนี้</td></tr>';
-    } else {
-      tbody.innerHTML = list.map(function (p) {
-        var s = STATUS[p.status];
-        return "<tr>" +
-          '<td class="c-name"><div class="pname">' + esc(p.name) + "<small>" + esc(p.note) + "</small></div></td>" +
-          '<td class="c-owner"><div class="owner">' + esc(p.owner) + "<small>" + esc(p.role) + "</small></div></td>" +
-          '<td class="c-status"><span class="pill ' + p.status + '">' + icon(s.icon) + s.label + "</span></td>" +
-          '<td class="c-prog"><div class="prog">' +
-            '<div class="bar ' + p.status + '" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + p.pct +
-              '" aria-label="ความคืบหน้า ' + p.pct + '% ควรถึง ' + p.expected + '%"><i style="width:' + p.pct + '%"></i>' +
-              (p.status !== "done" ? '<b style="left:' + p.expected + '%"></b>' : "") + "</div>" +
-            '<span class="pct">' + p.pct + "%</span>" + expLine(p) +
-          "</div></td>" +
-          '<td class="c-due"><div class="due">' + thDate(p.due) + dueSub(p) + "</div></td>" +
-          "</tr>";
-      }).join("");
-    }
-    document.getElementById("count-label").textContent = filter
-      ? "แสดง " + list.length + " จาก " + projects.length + " · " + STATUS[filter].label
-      : projects.length + " โปรเจกต์ · เรียงจากที่ต้องดูก่อน";
-    document.getElementById("clear").hidden = !filter;
-  }
-  function setFilter(k) {
-    filter = k;
-    verdict.querySelectorAll(".seg").forEach(function (b) {
-      b.setAttribute("aria-pressed", String(b.dataset.s === k));
-    });
-    render();
-  }
-  document.getElementById("clear").addEventListener("click", function () { setFilter(null); });
-  render();
+  document.getElementById("tbody").innerHTML = PROJECTS.map(function (p) {
+    return "<tr>" +
+      '<td class="c-name"><div class="pn">' + esc(p.name) + "</div></td>" +
+      '<td class="c-who"><div class="who">' + esc(p.owner) + "<small>" + esc(p.role) + "</small></div></td>" +
+      '<td class="c-stat"><span class="chip s-' + p.s + '">' + ic(p.s) + LABEL[p.s] + "</span></td>" +
+      '<td class="c-prog"><div class="pg">' +
+        '<div class="track s-' + p.s + '" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + p.pct +
+        '" aria-label="ความคืบหน้า ' + p.pct + "% แผน " + p.plan + '%">' +
+        '<span class="fill" style="width:' + p.pct + '%"></span>' +
+        (p.s !== "done" ? '<span class="plan" style="left:' + p.plan + '%"></span>' : "") +
+        "</div>" +
+        '<span class="num">' + p.pct + "%</span>" + note(p) +
+      "</div></td>" +
+      '<td class="c-due"><div class="due">' + thDate(p.due) + dueNote(p) + "</div></td>" +
+      "</tr>";
+  }).join("");
 
-  // ---- Trend chart (inline SVG, no library) ----
-  var svg = document.getElementById("chart");
-  var W, H = 170, L = 30, R = 38, T = 12, B = 22;
-  var yMin = 70, yMax = 88;
-  function x(i) { return L + i * (W - L - R) / (oee.length - 1); }
-  function y(v) { return T + (yMax - v) / (yMax - yMin) * (H - T - B); }
+  // ===== Trend (inline SVG, no library) =====
+  // Plan = annual target spread evenly; the last (month-to-date) point uses the same
+  // pro-rata as the YTD KPI card so both always show the same gap.
+  var PLAN = SAVINGS.map(function (_, i) {
+    return i === SAVINGS.length - 1 ? ANNUAL * yearPos : ANNUAL * (i + 1) / 12;
+  });
+  var last = SAVINGS[SAVINGS.length - 1], lastPlan = PLAN[PLAN.length - 1];
+  var diff = last - lastPlan;
+  var sub2 = document.getElementById("t-sub");
+  sub2.textContent = (diff >= 0 ? "▲ นำแผน " : "▼ ตามหลังแผน ") + nf(Math.abs(diff), 2) + " ล้าน";
+  sub2.style.color = diff >= 0 ? "var(--green)" : "var(--red)";
+  document.getElementById("t-now").textContent = nf(last, 2) + " ล้านบาท";
+  var daysLeft = Math.round((YEAR_END - NOW) / DAY);
+  var pace = (SAVINGS[10] - SAVINGS[7]) / 3;
+  document.getElementById("t-note").textContent =
+    "ต้องได้อีก " + nf(ANNUAL - last, 2) + " ล้านใน " + daysLeft + " วันที่เหลือเพื่อปิดเป้าทั้งปี · 3 เดือนล่าสุดทำได้เฉลี่ยเดือนละ " +
+    nf(pace, 2) + " ล้าน";
+  document.getElementById("spark-d").textContent =
+    "ยอดประหยัดสะสมรายเดือน ม.ค. ถึง พ.ย. 2569 เพิ่มจาก " + nf(SAVINGS[0], 2) + " เป็น " + nf(last, 2) +
+    " ล้านบาท เทียบแผน " + nf(lastPlan, 2) + " ล้านบาท";
+
+  var svg = document.getElementById("spark");
   function draw() {
-  W = Math.max(240, Math.round(svg.getBoundingClientRect().width));
-  svg.setAttribute("viewBox", "0 0 " + W + " " + H);
-  var out = '<g class="grid">';
-  [70, 75, 80, 85].forEach(function (g) { out += '<line x1="' + L + '" x2="' + (W - R) + '" y1="' + y(g) + '" y2="' + y(g) + '"/>'; });
-  out += '</g><g class="axis">';
-  [70, 75, 80].forEach(function (g) { out += '<text x="' + (L - 6) + '" y="' + (y(g) + 4) + '" text-anchor="end">' + g + "</text>"; });
-  oee.forEach(function (p, i) {
-    if (i % 3 === 0 || i === oee.length - 1) out += '<text x="' + x(i) + '" y="' + (H - 6) + '" text-anchor="middle">W' + p.w + "</text>";
-  });
-  out += "</g>";
-  out += '<line class="target" x1="' + L + '" x2="' + (W - R) + '" y1="' + y(OEE_TARGET) + '" y2="' + y(OEE_TARGET) + '"/>';
-  out += '<text class="target-l" x="' + (L - 6) + '" y="' + (y(OEE_TARGET) + 4) + '" text-anchor="end">85</text>';
-  var pts = oee.map(function (p, i) { return x(i).toFixed(1) + "," + y(p.v).toFixed(1); });
-  out += '<path class="area" d="M' + x(0) + "," + y(yMin) + " L" + pts.join(" L") + " L" + x(oee.length - 1) + "," + y(yMin) + ' Z" opacity=".7"/>';
-  out += '<polyline class="line" points="' + pts.join(" ") + '"/>';
-  oee.forEach(function (p, i) {
-    var last = i === oee.length - 1;
-    out += '<circle class="pt' + (last ? " last" : "") + '" cx="' + x(i) + '" cy="' + y(p.v) + '" r="' + (last ? 3.6 : 2.6) + '"/>';
-    out += '<rect class="hit" x="' + (x(i) - 10) + '" y="' + T + '" width="20" height="' + (H - T - B) + '"><title>สัปดาห์ ' + p.w + ": OEE " + fmt(p.v, 1) + "%</title></rect>";
-  });
-  var lastP = oee[oee.length - 1];
-  out += '<text class="val" x="' + (x(oee.length - 1) + 6) + '" y="' + (y(lastP.v) + 4) + '">' + fmt(lastP.v, 1) + "</text>";
-  svg.querySelectorAll("g,line,text,path,polyline,circle,rect").forEach(function (n) { n.remove(); });
-  svg.insertAdjacentHTML("beforeend", out);
+    var W = Math.max(240, Math.round(svg.getBoundingClientRect().width)), H = 150;
+    var L = 22, R = 34, T = 10, B = 20, yMax = 4;
+    svg.setAttribute("viewBox", "0 0 " + W + " " + H);
+    function x(i) { return L + i * (W - L - R) / (SAVINGS.length - 1); }
+    function y(v) { return T + (1 - v / yMax) * (H - T - B); }
+    var o = "";
+    [0, 1, 2, 3, 4].forEach(function (g) {
+      o += '<line class="gl" x1="' + L + '" x2="' + (W - R) + '" y1="' + y(g) + '" y2="' + y(g) + '"/>';
+      o += '<text x="' + (L - 6) + '" y="' + (y(g) + 3.5) + '" text-anchor="end">' + g + "</text>";
+    });
+    [0, 3, 6, SAVINGS.length - 1].forEach(function (i) {
+      o += '<text x="' + x(i) + '" y="' + (H - 4) + '" text-anchor="middle">' + MON[i] + "</text>";
+    });
+    var a = SAVINGS.map(function (v, i) { return x(i).toFixed(1) + "," + y(v).toFixed(1); });
+    var p = PLAN.map(function (v, i) { return x(i).toFixed(1) + "," + y(v).toFixed(1); });
+    o += '<path class="area" d="M' + x(0) + "," + y(0) + " L" + a.join(" L") + " L" + x(SAVINGS.length - 1) + "," + y(0) + 'Z"/>';
+    o += '<polyline class="planl" points="' + p.join(" ") + '"/>';
+    o += '<polyline class="act" points="' + a.join(" ") + '"/>';
+    var lx = x(SAVINGS.length - 1), ly = y(last);
+    o += '<circle class="dot" cx="' + lx + '" cy="' + ly + '" r="3.8"/>';
+    o += '<text class="lbl" x="' + (lx + 6) + '" y="' + (ly + 4) + '">' + nf(last, 2) + "</text>";
+    Array.prototype.slice.call(svg.childNodes).forEach(function (c) { if (c.nodeName !== "desc") svg.removeChild(c); });
+    svg.insertAdjacentHTML("beforeend", o);
   }
   draw();
-  var rt; window.addEventListener("resize", function () { clearTimeout(rt); rt = setTimeout(draw, 80); });
-
-  var lastP = oee[oee.length - 1];
-  var first = oee[0], gapToTarget = OEE_TARGET - lastP.v;
-  // simple least-squares slope per week
-  var n = oee.length, sx = 0, sy = 0, sxy = 0, sxx = 0;
-  oee.forEach(function (p, i) { sx += i; sy += p.v; sxy += i * p.v; sxx += i * i; });
-  var slope = (n * sxy - sx * sy) / (n * sxx - sx * sx);
-  var weeksToTarget = Math.ceil(gapToTarget / slope);
-
-  document.getElementById("oee-now").textContent = fmt(lastP.v, 1) + "%";
-  document.getElementById("oee-sub").textContent = "สัปดาห์ที่ " + lastP.w + " · ขาดเป้า " + fmt(gapToTarget, 1) + " จุด";
-  document.getElementById("chart-desc").textContent =
-    "OEE รายสัปดาห์ จากสัปดาห์ที่ " + first.w + " ถึง " + lastP.w + ": เพิ่มจาก " + fmt(first.v, 1) + "% เป็น " + fmt(lastP.v, 1) + "% เป้าหมาย 85%";
-  document.getElementById("trend-note").textContent =
-    "เพิ่มขึ้นเฉลี่ย " + fmt(slope, 1) + " จุด/สัปดาห์ ถ้ารักษาอัตรานี้ จะถึงเป้าในราว " + weeksToTarget + " สัปดาห์";
+  var rz; window.addEventListener("resize", function () { clearTimeout(rz); rz = setTimeout(draw, 100); });
 })();
 </script>
 </body>
